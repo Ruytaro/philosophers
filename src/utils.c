@@ -21,12 +21,22 @@ int	philo_starved(t_philo *philo)
 
 int	ft_try_take_a_fork(t_philo *philo)
 {
-	if (pthread_mutex_lock(philo->mutex_left))
-		return (FALSE);
-	if (pthread_mutex_lock(philo->mutex_right))
-	{
-		pthread_mutex_unlock(philo->mutex_left);
-		return (FALSE);
+	if (philo->id % 2) {
+		if (pthread_mutex_lock(philo->mutex_left))
+			return (FALSE);
+		if (pthread_mutex_lock(philo->mutex_right))
+		{
+			pthread_mutex_unlock(philo->mutex_left);
+			return (FALSE);
+		}
+	}	else {
+		if (pthread_mutex_lock(philo->mutex_right))
+			return (FALSE);
+		if (pthread_mutex_lock(philo->mutex_left))
+		{
+			pthread_mutex_unlock(philo->mutex_right);
+			return (FALSE);
+		}
 	}
 	if (*philo->fork_left == TRUE && *philo->fork_right == TRUE)
 	{
@@ -48,8 +58,13 @@ int	ft_try_take_a_fork(t_philo *philo)
 
 void	ft_free_forks(t_philo *philo)
 {
-	pthread_mutex_lock(philo->mutex_left);
-	pthread_mutex_lock(philo->mutex_right);
+	if (philo->id % 2) {
+		pthread_mutex_lock(philo->mutex_left);
+		pthread_mutex_lock(philo->mutex_right);
+	}	else {
+		pthread_mutex_lock(philo->mutex_right);
+		pthread_mutex_lock(philo->mutex_left);
+	}
 	*philo->fork_left = TRUE;
 	*philo->fork_right = TRUE;
 	pthread_mutex_unlock(philo->mutex_left);
